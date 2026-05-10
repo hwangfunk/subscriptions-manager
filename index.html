@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Subs">
+    <link rel="apple-touch-icon" href="icon.png">
+    
+    <title>Quản lý Đăng ký</title>
+    
+    <!-- Fonts: Inter (Vercel/Linear standard) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        vercel: {
+                            black: '#000000',
+                            dark: '#0A0A0A',
+                            gray1: '#111111',
+                            gray2: '#333333',
+                            gray3: '#888888',
+                            gray4: '#EAEAEA',
+                            blue: '#0070F3',
+                            pink: '#FF0080',
+                            purple: '#7928CA'
+                        }
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'scale-in': 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'blob': 'blob 7s infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        scaleIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        },
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <style>
+        :root {
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+        
+        body {
+            background-color: #000000;
+            color: #EAEAEA;
+            -webkit-tap-highlight-color: transparent;
+            padding-top: var(--safe-area-top);
+            padding-bottom: var(--safe-area-bottom);
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Glassmorphism / Linear style borders */
+        .linear-card {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+        .linear-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .linear-input {
+            background: #111111;
+            border: 1px solid #333333;
+            color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .linear-input:focus {
+            border-color: #ffffff;
+            box-shadow: 0 0 0 1px #ffffff;
+            outline: none;
+        }
+
+        /* Ambient glowing background */
+        .ambient-glow {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(120deg, var(--tw-gradient-stops));
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+            border-radius: 50%;
+        }
+
+        /* Modal transitions */
+        .modal-overlay {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+        }
+        .modal-content {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-content.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden selection:bg-vercel-gray2 selection:text-white">
+
+    <!-- Ambient Background Effects -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
+        <div class="ambient-glow from-vercel-purple to-vercel-pink top-[-50px] left-[-50px] animate-blob"></div>
+        <div class="ambient-glow from-vercel-blue to-cyan-500 top-[20%] right-[-50px] animate-blob" style="animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="pt-12 pb-6 px-6 sticky top-0 bg-black/50 backdrop-blur-xl border-b border-white/5 z-10">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                <i class="ph-fill ph-infinity text-vercel-blue"></i> Subs.
+            </h1>
+            <div class="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center">
+                <i class="ph ph-user text-white/70"></i>
+            </div>
+        </div>
+
+        <!-- Total Card -->
+        <div class="linear-card rounded-2xl p-6 relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <p class="text-xs font-medium text-vercel-gray3 uppercase tracking-widest mb-2">Total Monthly</p>
+            <div class="flex items-baseline gap-1">
+                <span class="text-4xl font-bold text-white tracking-tighter" id="totalAmount">0</span>
+                <span class="text-xl font-medium text-vercel-gray3">VND</span>
+            </div>
+            <div class="mt-4 flex items-center gap-2 text-xs text-vercel-gray3 border-t border-white/10 pt-4">
+                <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
+                Active Subscriptions
+            </div>
+        </div>
+    </header>
+
+    <!-- Subscriptions List -->
+    <main class="px-6 mt-2 flex flex-col gap-3 pb-32" id="subsList">
+        <!-- JS will populate this -->
+    </main>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden flex-col items-center justify-center mt-20 px-6 text-center animate-fade-in-up">
+        <div class="w-16 h-16 rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center mb-6 shadow-2xl">
+            <i class="ph ph-ghost text-3xl text-vercel-gray3"></i>
+        </div>
+        <h2 class="text-lg font-medium text-white mb-2">No active subscriptions</h2>
+        <p class="text-vercel-gray3 text-sm max-w-[200px]">Keep track of your recurring expenses by adding them here.</p>
+    </div>
+
+    <!-- FAB (Floating Action Button) -->
+    <div class="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-center z-20" style="padding-bottom: calc(1.5rem + var(--safe-area-bottom))">
+        <button onclick="openModal()" class="w-full max-w-sm h-14 bg-white text-black rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:scale-[0.98] active:scale-[0.95] transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.15)]">
+            <i class="ph-bold ph-plus text-lg"></i> New Subscription
+        </button>
+    </div>
+
+    <!-- Add Modal Backdrop -->
+    <div id="modalBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden modal-overlay" onclick="closeModal()"></div>
+
+    <!-- Add Modal -->
+    <div id="addModal" class="fixed inset-x-0 bottom-0 z-40 hidden flex-col items-center justify-end sm:justify-center px-4 pb-4 sm:p-0" style="padding-bottom: calc(1rem + var(--safe-area-bottom))">
+        <div class="modal-content w-full max-w-md bg-vercel-dark border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center p-5 border-b border-white/5 bg-white/[0.02]">
+                <h3 class="font-semibold text-white">Add Subscription</h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-vercel-gray3 hover:text-white hover:bg-white/10 transition-colors">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto hide-scrollbar flex-1">
+                <form id="addForm" class="flex flex-col gap-5">
+                    <div>
+                        <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Service Name</label>
+                        <input type="text" id="name" required placeholder="e.g. Netflix, Spotify" class="w-full linear-input rounded-xl px-4 py-3 text-sm placeholder:text-vercel-gray2">
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Price (VND)</label>
+                            <input type="number" id="price" required placeholder="0" class="w-full linear-input rounded-xl px-4 py-3 text-sm placeholder:text-vercel-gray2">
+                        </div>
+                        <div class="w-28">
+                            <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Cycle</label>
+                            <div class="relative">
+                                <select id="cycle" class="w-full linear-input rounded-xl px-3 py-3 text-sm appearance-none">
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                                <i class="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-vercel-gray3 pointer-events-none"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Start Date</label>
+                        <input type="date" id="startDate" required class="w-full linear-input rounded-xl px-4 py-3 text-sm [color-scheme:dark]">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Cancel Date (Optional)</label>
+                        <input type="date" id="cancelDate" class="w-full linear-input rounded-xl px-4 py-3 text-sm [color-scheme:dark]">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Payment Method</label>
+                        <div class="relative">
+                            <select id="paymentMethod" class="w-full linear-input rounded-xl px-4 py-3 text-sm appearance-none">
+                                <option value="Apple Pay">Apple Pay</option>
+                                <option value="MoMo">MoMo</option>
+                                <option value="Visa">Visa</option>
+                                <option value="Mastercard">Mastercard</option>
+                                <option value="Internet Banking">Internet Banking</option>
+                            </select>
+                            <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-vercel-gray3 pointer-events-none"></i>
+                        </div>
+                    </div>
+                    
+                    <button type="button" onclick="saveSubscription()" class="mt-4 w-full bg-white text-black py-3.5 rounded-xl font-medium text-sm hover:bg-gray-200 transition-colors">
+                        Save Subscription
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="app.js"></script>
+</body>
+</html>
