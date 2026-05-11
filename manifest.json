@@ -4,8 +4,8 @@
     "description": "Quản lý các dịch vụ đăng ký trả phí",
     "start_url": "./index.html",
     "display": "standalone",
-    "background_color": "#f2f2f7",
-    "theme_color": "#ffffff",
+    "background_color": "#f6f7fb",
+    "theme_color": "#f6f7fb",
     "icons": [
         {
             "src": "icon.png",

@@ -1,281 +1,489 @@
 <!DOCTYPE html>
-<html lang="vi" class="dark">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <!-- iOS PWA Meta Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Subs">
+    <link rel="icon" href="icon.png" type="image/png">
     <link rel="apple-touch-icon" href="icon.png">
-    
+
     <title>Quản lý Đăng ký</title>
-    
-    <!-- Fonts: Inter (Vercel/Linear standard) -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
                     },
-                    colors: {
-                        vercel: {
-                            black: '#000000',
-                            dark: '#0A0A0A',
-                            gray1: '#111111',
-                            gray2: '#333333',
-                            gray3: '#888888',
-                            gray4: '#EAEAEA',
-                            blue: '#0070F3',
-                            pink: '#FF0080',
-                            purple: '#7928CA'
-                        }
-                    },
-                    animation: {
-                        'fade-in-up': 'fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'scale-in': 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'blob': 'blob 7s infinite',
-                    },
-                    keyframes: {
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        scaleIn: {
-                            '0%': { opacity: '0', transform: 'scale(0.95)' },
-                            '100%': { opacity: '1', transform: 'scale(1)' },
-                        },
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
-                        }
-                    }
                 }
             }
         }
     </script>
-    
-    <!-- Phosphor Icons -->
+
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- Manifest -->
     <link rel="manifest" href="manifest.json">
 
     <style>
         :root {
             --safe-area-top: env(safe-area-inset-top);
             --safe-area-bottom: env(safe-area-inset-bottom);
+            --page: #f6f7fb;
+            --surface: #ffffff;
+            --surface-soft: #f1f4f8;
+            --ink: #111827;
+            --muted: #667085;
+            --subtle: #98a2b3;
+            --line: #dfe4ea;
+            --line-soft: #edf0f3;
+            --accent: #111827;
+            --accent-blue: #2563eb;
+            --success: #059669;
+            --danger: #dc2626;
+            --shadow: 0 18px 50px rgba(17, 24, 39, 0.10);
         }
-        
+
+        * {
+            letter-spacing: 0;
+        }
+
         body {
-            background-color: #000000;
-            color: #EAEAEA;
+            min-height: 100dvh;
+            background: var(--page);
+            color: var(--ink);
+            font-family: Inter, system-ui, sans-serif;
             -webkit-tap-highlight-color: transparent;
             padding-top: var(--safe-area-top);
             padding-bottom: var(--safe-area-bottom);
+            font-feature-settings: "cv02", "cv03", "cv04", "cv11";
         }
 
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        button,
+        input,
+        select {
+            font: inherit;
         }
 
-        /* Glassmorphism / Linear style borders */
-        .linear-card {
-            background: rgba(10, 10, 10, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s ease;
-        }
-        .linear-card:hover {
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid rgba(37, 99, 235, 0.25);
+            outline-offset: 2px;
         }
 
-        .linear-input {
-            background: #111111;
-            border: 1px solid #333333;
+        .app-shell {
+            width: min(100%, 720px);
+            margin: 0 auto;
+        }
+
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(246, 247, 251, 0.88);
+            border-bottom: 1px solid rgba(223, 228, 234, 0.8);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .brand-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--accent);
             color: #ffffff;
-            transition: all 0.2s ease;
-        }
-        .linear-input:focus {
-            border-color: #ffffff;
-            box-shadow: 0 0 0 1px #ffffff;
-            outline: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Ambient glowing background */
-        .ambient-glow {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            background: linear-gradient(120deg, var(--tw-gradient-stops));
-            filter: blur(80px);
-            z-index: -1;
-            opacity: 0.4;
-            border-radius: 50%;
+        .summary-panel {
+            border-radius: 8px;
+            background: #111827;
+            color: #ffffff;
+            box-shadow: var(--shadow);
+            overflow: hidden;
         }
 
-        /* Modal transitions */
+        .summary-meta {
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .subscription-row {
+            position: relative;
+            display: grid;
+            grid-template-columns: 44px minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            min-height: 76px;
+            padding: 14px;
+            border: 1px solid var(--line-soft);
+            border-radius: 8px;
+            background: var(--surface);
+            box-shadow: 0 10px 30px rgba(17, 24, 39, 0.05);
+            transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+        }
+
+        @media (hover: hover) {
+            .subscription-row:hover {
+                border-color: #cfd6df;
+                box-shadow: 0 14px 34px rgba(17, 24, 39, 0.08);
+                transform: translateY(-1px);
+            }
+        }
+
+        .service-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(17, 24, 39, 0.08);
+            background: var(--surface-soft);
+        }
+
+        .delete-button {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--danger);
+            background: #fff1f2;
+            border: 1px solid #ffe4e6;
+            transition: transform 160ms ease, background 160ms ease;
+        }
+
+        .delete-button:active {
+            transform: scale(0.96);
+            background: #ffe4e6;
+        }
+
+        .subscription-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .action-bar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 20;
+            padding: 14px 16px calc(14px + var(--safe-area-bottom));
+            background: linear-gradient(to top, rgba(246, 247, 251, 0.98) 70%, rgba(246, 247, 251, 0));
+        }
+
+        .primary-button {
+            height: 54px;
+            border-radius: 8px;
+            background: var(--accent);
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 14px 36px rgba(17, 24, 39, 0.20);
+            transition: transform 160ms ease, background 160ms ease;
+        }
+
+        .primary-button:active {
+            transform: scale(0.98);
+            background: #000000;
+        }
+
         .modal-overlay {
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 220ms ease;
         }
+
         .modal-overlay.active {
             opacity: 1;
         }
+
         .modal-content {
             opacity: 0;
-            transform: scale(0.95) translateY(10px);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(18px);
+            transition: opacity 260ms ease, transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
         }
+
         .modal-content.active {
             opacity: 1;
-            transform: scale(1) translateY(0);
+            transform: translateY(0);
+        }
+
+        .modal-card {
+            max-height: 88dvh;
+        }
+
+        .modal-body {
+            max-height: calc(88dvh - 76px);
+            overflow-y: auto;
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .app-input {
+            width: 100%;
+            min-height: 48px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: #ffffff;
+            color: var(--ink);
+            padding: 12px 14px;
+            font-size: 15px;
+            transition: border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        .app-input::placeholder {
+            color: var(--subtle);
+        }
+
+        .app-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.08);
+            outline: none;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        @media (min-width: 480px) {
+            .form-grid.two-col {
+                grid-template-columns: minmax(0, 1fr) 140px;
+            }
+        }
+
+        @media (min-width: 640px) {
+            .action-bar {
+                padding-inline: 24px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .subscription-row {
+                grid-template-columns: 40px minmax(0, 1fr);
+                gap: 10px;
+            }
+
+            .subscription-actions {
+                grid-column: 2;
+                justify-content: space-between;
+                margin-top: -4px;
+            }
+
+            .subscription-price {
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 430px) {
+            .modal-card {
+                max-height: 94dvh;
+            }
+
+            .modal-body {
+                max-height: calc(94dvh - 68px);
+                padding: 16px 20px 18px;
+            }
+
+            .field-label {
+                margin-bottom: 6px;
+                font-size: 12px;
+            }
+
+            .app-input {
+                min-height: 44px;
+                padding: 10px 13px;
+            }
+
+            .form-grid {
+                gap: 12px;
+            }
+
+            .primary-button {
+                height: 52px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.001ms !important;
+            }
         }
     </style>
 </head>
-<body class="min-h-screen relative overflow-x-hidden selection:bg-vercel-gray2 selection:text-white">
-
-    <!-- Ambient Background Effects -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
-        <div class="ambient-glow from-vercel-purple to-vercel-pink top-[-50px] left-[-50px] animate-blob"></div>
-        <div class="ambient-glow from-vercel-blue to-cyan-500 top-[20%] right-[-50px] animate-blob" style="animation-delay: 2s;"></div>
-    </div>
-
-    <!-- Header -->
-    <header class="pt-12 pb-6 px-6 sticky top-0 bg-black/50 backdrop-blur-xl border-b border-white/5 z-10">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                <i class="ph-fill ph-infinity text-vercel-blue"></i> Subs.
-            </h1>
-            <div class="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center">
-                <i class="ph ph-user text-white/70"></i>
+<body class="selection:bg-slate-900 selection:text-white">
+    <header class="app-header">
+        <div class="app-shell px-4 pt-4 pb-4 sm:px-6">
+            <div class="mb-4 flex items-center justify-between gap-4">
+                <div class="flex min-w-0 items-center gap-3">
+                    <div class="brand-mark">
+                        <i class="ph-fill ph-infinity text-xl"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h1 class="truncate text-xl font-bold text-slate-950">Subs</h1>
+                        <p class="truncate text-sm font-medium text-slate-500">Quản lý chi phí định kỳ</p>
+                    </div>
+                </div>
+                <div class="hidden text-right sm:block">
+                    <p class="text-sm font-semibold text-slate-950" id="subsCountTop">0 dịch vụ</p>
+                    <p class="text-xs font-medium text-slate-500">đang theo dõi</p>
+                </div>
             </div>
-        </div>
 
-        <!-- Total Card -->
-        <div class="linear-card rounded-2xl p-6 relative overflow-hidden group">
-            <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <p class="text-xs font-medium text-vercel-gray3 uppercase tracking-widest mb-2">Total Monthly</p>
-            <div class="flex items-baseline gap-1">
-                <span class="text-4xl font-bold text-white tracking-tighter" id="totalAmount">0</span>
-                <span class="text-xl font-medium text-vercel-gray3">VND</span>
-            </div>
-            <div class="mt-4 flex items-center gap-2 text-xs text-vercel-gray3 border-t border-white/10 pt-4">
-                <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
-                Active Subscriptions
-            </div>
+            <section class="summary-panel p-5" aria-label="Tổng chi phí hàng tháng">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-white/60">Chi phí mỗi tháng</p>
+                        <div class="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                            <span class="text-4xl font-bold leading-none text-white sm:text-5xl" id="totalAmount">0</span>
+                            <span class="text-base font-semibold text-white/60">VND</span>
+                        </div>
+                    </div>
+                    <div class="rounded-lg border border-white/10 bg-white/10 p-3 text-white">
+                        <i class="ph ph-chart-line-up text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="summary-meta mt-5 grid grid-cols-2 gap-4 pt-4">
+                    <div>
+                        <p class="text-xs font-medium text-white/50">Đăng ký</p>
+                        <p class="mt-1 text-sm font-semibold text-white" id="subsCount">0 hoạt động</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-white/50">Chu kỳ năm</p>
+                        <p class="mt-1 text-sm font-semibold text-white" id="yearlyCount">0 dịch vụ</p>
+                    </div>
+                </div>
+            </section>
         </div>
     </header>
 
-    <!-- Subscriptions List -->
-    <main class="px-6 mt-2 flex flex-col gap-3 pb-32" id="subsList">
-        <!-- JS will populate this -->
+    <main class="app-shell px-4 pb-32 pt-4 sm:px-6">
+        <div class="mb-3 flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-950">Danh sách</h2>
+            <p class="text-sm font-medium text-slate-500" id="monthlyHint">0 VND/tháng</p>
+        </div>
+
+        <section class="flex flex-col gap-2.5" id="subsList" aria-live="polite">
+        </section>
+
+        <section id="emptyState" class="hidden rounded-lg border border-dashed border-slate-300 bg-white px-5 py-12 text-center shadow-sm" hidden>
+            <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+                <i class="ph ph-receipt text-2xl"></i>
+            </div>
+            <h2 class="text-base font-bold text-slate-950">Chưa có đăng ký nào</h2>
+            <p class="mx-auto mt-2 max-w-[260px] text-sm leading-6 text-slate-500">Thêm dịch vụ đầu tiên để theo dõi chi phí lặp lại mỗi tháng.</p>
+        </section>
     </main>
 
-    <!-- Empty State -->
-    <div id="emptyState" class="hidden flex-col items-center justify-center mt-20 px-6 text-center animate-fade-in-up">
-        <div class="w-16 h-16 rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center mb-6 shadow-2xl">
-            <i class="ph ph-ghost text-3xl text-vercel-gray3"></i>
+    <div class="action-bar">
+        <div class="app-shell">
+            <button onclick="openModal()" class="primary-button w-full" type="button">
+                <i class="ph-bold ph-plus text-lg"></i>
+                Thêm đăng ký
+            </button>
         </div>
-        <h2 class="text-lg font-medium text-white mb-2">No active subscriptions</h2>
-        <p class="text-vercel-gray3 text-sm max-w-[200px]">Keep track of your recurring expenses by adding them here.</p>
     </div>
 
-    <!-- FAB (Floating Action Button) -->
-    <div class="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-center z-20" style="padding-bottom: calc(1.5rem + var(--safe-area-bottom))">
-        <button onclick="openModal()" class="w-full max-w-sm h-14 bg-white text-black rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:scale-[0.98] active:scale-[0.95] transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.15)]">
-            <i class="ph-bold ph-plus text-lg"></i> New Subscription
-        </button>
-    </div>
+    <div id="modalBackdrop" class="modal-overlay fixed inset-0 z-30 hidden bg-slate-950/50 backdrop-blur-sm" onclick="closeModal()"></div>
 
-    <!-- Add Modal Backdrop -->
-    <div id="modalBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden modal-overlay" onclick="closeModal()"></div>
-
-    <!-- Add Modal -->
-    <div id="addModal" class="fixed inset-x-0 bottom-0 z-40 hidden flex-col items-center justify-end sm:justify-center px-4 pb-4 sm:p-0" style="padding-bottom: calc(1rem + var(--safe-area-bottom))">
-        <div class="modal-content w-full max-w-md bg-vercel-dark border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div class="flex justify-between items-center p-5 border-b border-white/5 bg-white/[0.02]">
-                <h3 class="font-semibold text-white">Add Subscription</h3>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-vercel-gray3 hover:text-white hover:bg-white/10 transition-colors">
-                    <i class="ph ph-x"></i>
+    <div id="addModal" class="fixed inset-x-0 bottom-0 z-40 hidden flex-col justify-end px-3 sm:inset-0 sm:items-center sm:justify-center sm:p-6" style="padding-bottom: calc(0.75rem + var(--safe-area-bottom))">
+        <div class="modal-content modal-card w-full max-w-lg overflow-hidden rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:rounded-2xl">
+            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                <div>
+                    <h3 class="text-base font-bold text-slate-950">Thêm đăng ký</h3>
+                    <p class="mt-0.5 text-sm font-medium text-slate-500">Lưu chi phí định kỳ mới</p>
+                </div>
+                <button onclick="closeModal()" class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors active:bg-slate-200" type="button" aria-label="Đóng">
+                    <i class="ph ph-x text-lg"></i>
                 </button>
             </div>
-            
-            <div class="p-6 overflow-y-auto hide-scrollbar flex-1">
-                <form id="addForm" class="flex flex-col gap-5">
+
+            <div class="modal-body px-5 py-5">
+                <form id="addForm" class="form-grid">
                     <div>
-                        <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Service Name</label>
-                        <input type="text" id="name" required placeholder="e.g. Netflix, Spotify" class="w-full linear-input rounded-xl px-4 py-3 text-sm placeholder:text-vercel-gray2">
+                        <label class="field-label" for="name">Tên dịch vụ</label>
+                        <input type="text" id="name" required placeholder="Netflix, Spotify..." class="app-input">
                     </div>
 
-                    <div class="flex gap-4">
-                        <div class="flex-1">
-                            <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Price (VND)</label>
-                            <input type="number" id="price" required placeholder="0" class="w-full linear-input rounded-xl px-4 py-3 text-sm placeholder:text-vercel-gray2">
+                    <div class="form-grid two-col">
+                        <div>
+                            <label class="field-label" for="price">Giá tiền (VND)</label>
+                            <input type="number" id="price" required placeholder="0" inputmode="numeric" class="app-input">
                         </div>
-                        <div class="w-28">
-                            <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Cycle</label>
+                        <div>
+                            <label class="field-label" for="cycle">Chu kỳ</label>
                             <div class="relative">
-                                <select id="cycle" class="w-full linear-input rounded-xl px-3 py-3 text-sm appearance-none">
-                                    <option value="monthly">Monthly</option>
-                                    <option value="yearly">Yearly</option>
+                                <select id="cycle" class="app-input appearance-none pr-10">
+                                    <option value="monthly">Hàng tháng</option>
+                                    <option value="yearly">Hàng năm</option>
                                 </select>
-                                <i class="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-vercel-gray3 pointer-events-none"></i>
+                                <i class="ph ph-caret-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Start Date</label>
-                        <input type="date" id="startDate" required class="w-full linear-input rounded-xl px-4 py-3 text-sm [color-scheme:dark]">
+                        <label class="field-label" for="startDate">Ngày bắt đầu</label>
+                        <input type="date" id="startDate" required class="app-input">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Cancel Date (Optional)</label>
-                        <input type="date" id="cancelDate" class="w-full linear-input rounded-xl px-4 py-3 text-sm [color-scheme:dark]">
+                        <label class="field-label" for="cancelDate">Ngày hủy (không bắt buộc)</label>
+                        <input type="date" id="cancelDate" class="app-input">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-vercel-gray3 uppercase tracking-wider mb-2">Payment Method</label>
+                        <label class="field-label" for="paymentMethod">Phương thức thanh toán</label>
                         <div class="relative">
-                            <select id="paymentMethod" class="w-full linear-input rounded-xl px-4 py-3 text-sm appearance-none">
+                            <select id="paymentMethod" class="app-input appearance-none pr-10">
                                 <option value="Apple Pay">Apple Pay</option>
                                 <option value="MoMo">MoMo</option>
                                 <option value="Visa">Visa</option>
                                 <option value="Mastercard">Mastercard</option>
                                 <option value="Internet Banking">Internet Banking</option>
                             </select>
-                            <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-vercel-gray3 pointer-events-none"></i>
+                            <i class="ph ph-caret-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         </div>
                     </div>
-                    
-                    <button type="button" onclick="saveSubscription()" class="mt-4 w-full bg-white text-black py-3.5 rounded-xl font-medium text-sm hover:bg-gray-200 transition-colors">
-                        Save Subscription
+
+                    <button type="button" onclick="saveSubscription()" class="primary-button mt-2 w-full">
+                        Lưu đăng ký
                     </button>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Script -->
     <script src="app.js"></script>
 </body>
 </html>
