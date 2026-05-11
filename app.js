@@ -1,8 +1,46 @@
 document.addEventListener('DOMContentLoaded', () => {
-    loadSubscriptions();
+    initAuthGate();
 });
 
+const APP_PASSWORD = '2210';
+
 let subscriptions = readSubscriptions();
+
+function initAuthGate() {
+    const authScreen = document.getElementById('authScreen');
+    const authForm = document.getElementById('authForm');
+    const passwordInput = document.getElementById('appPassword');
+    const authError = document.getElementById('authError');
+
+    if (!authScreen || !authForm || !passwordInput) {
+        loadSubscriptions();
+        return;
+    }
+
+    document.body.classList.add('auth-locked');
+    passwordInput.focus();
+
+    authForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        if (passwordInput.value.trim() === APP_PASSWORD) {
+            authError.textContent = '';
+            authForm.reset();
+            unlockApp(authScreen);
+            loadSubscriptions();
+            return;
+        }
+
+        authError.textContent = 'Mật khẩu không đúng.';
+        passwordInput.value = '';
+        passwordInput.focus();
+    });
+}
+
+function unlockApp(authScreen) {
+    document.body.classList.remove('auth-locked');
+    authScreen.hidden = true;
+}
 
 function readSubscriptions() {
     try {
