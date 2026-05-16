@@ -3,66 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Subs">
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="icon.png" type="image/png">
     <link rel="apple-touch-icon" href="icon.png">
+    <link rel="preload" as="image" href="assets/subs-logo.png">
+    <link rel="preload" as="image" href="assets/empty-box-3d.png">
 
-    <title>Quản lý Đăng ký</title>
+    <title>Subs - Quản lý chi phí định kỳ</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="manifest" href="manifest.json">
 
     <style>
         :root {
-            --safe-area-top: env(safe-area-inset-top);
-            --safe-area-bottom: env(safe-area-inset-bottom);
-            --page: #f6f7fb;
-            --surface: #ffffff;
-            --surface-soft: #f1f4f8;
-            --ink: #111827;
-            --muted: #667085;
-            --subtle: #98a2b3;
-            --line: #dfe4ea;
-            --line-soft: #edf0f3;
-            --accent: #111827;
-            --accent-blue: #2563eb;
-            --success: #059669;
-            --danger: #dc2626;
-            --shadow: 0 18px 50px rgba(17, 24, 39, 0.10);
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+            --page: #000000;
+            --panel: #111214;
+            --panel-2: #17191c;
+            --line: rgba(255, 255, 255, 0.16);
+            --line-strong: rgba(255, 255, 255, 0.24);
+            --text: #f7f7f8;
+            --muted: #a5a7ad;
+            --dim: #6f7279;
+            --field: rgba(22, 23, 26, 0.84);
+            --radius-panel: 12px;
+            --radius-control: 9px;
+            --shadow-panel: 0 18px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
         }
 
         * {
+            box-sizing: border-box;
             letter-spacing: 0;
+        }
+
+        html {
+            background: var(--page);
         }
 
         body {
             min-height: 100dvh;
-            background: var(--page);
-            color: var(--ink);
-            font-family: Inter, system-ui, sans-serif;
+            margin: 0;
+            background:
+                radial-gradient(900px 420px at 70% -120px, rgba(91, 96, 114, 0.23), transparent 62%),
+                linear-gradient(180deg, #050506 0%, #000000 58%, #000000 100%);
+            color: var(--text);
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            -webkit-font-smoothing: antialiased;
             -webkit-tap-highlight-color: transparent;
-            padding-top: var(--safe-area-top);
-            padding-bottom: var(--safe-area-bottom);
             font-feature-settings: "cv02", "cv03", "cv04", "cv11";
         }
 
@@ -73,162 +66,583 @@
             min-width: 0;
         }
 
+        button {
+            border: 0;
+            cursor: pointer;
+        }
+
         button:focus-visible,
         input:focus-visible,
         select:focus-visible {
-            outline: 3px solid rgba(37, 99, 235, 0.25);
+            outline: 3px solid rgba(255, 255, 255, 0.18);
             outline-offset: 2px;
         }
 
-        .app-shell {
-            width: min(100%, 720px);
-            margin: 0 auto;
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        * {
+            scrollbar-width: none;
         }
 
         .auth-locked {
             overflow: hidden;
         }
 
-        .auth-locked .app-header,
-        .auth-locked main,
-        .auth-locked .action-bar,
-        .auth-locked #modalBackdrop,
-        .auth-locked #addModal {
+        .auth-locked > :not(#authScreen) {
             display: none !important;
+        }
+
+        .app-shell {
+            position: relative;
+            width: min(100%, 430px);
+            min-height: 100dvh;
+            margin: 0 auto;
+            padding-bottom: calc(112px + var(--safe-bottom));
+        }
+
+        .hero-box-bg {
+            position: absolute;
+            top: 132px;
+            left: 50%;
+            z-index: 1;
+            width: min(350px, 84vw);
+            aspect-ratio: 1;
+            object-fit: cover;
+            object-position: 50% 46%;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-50%) scale(0.94);
+            filter: drop-shadow(0 34px 42px rgba(0, 0, 0, 0.42));
+            mix-blend-mode: screen;
+            transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        body.has-subscriptions .hero-box-bg {
+            opacity: 0.24;
+            transform: translateX(-50%) scale(1);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .logo-tile {
+            position: relative;
+            display: inline-grid;
+            place-items: center;
+            flex: 0 0 auto;
+            background: transparent;
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.64), 0 8px 34px rgba(175, 190, 220, 0.08);
+            overflow: hidden;
+        }
+
+        .logo-tile--large {
+            width: 101px;
+            height: 101px;
+            border-radius: 23px;
+        }
+
+        .logo-tile--small {
+            width: 31px;
+            height: 31px;
+            border-radius: 8px;
+        }
+
+        .logo-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transform: scale(1.38);
+            transform-origin: 50% 50%;
         }
 
         .auth-screen {
             position: fixed;
             inset: 0;
-            z-index: 100;
+            z-index: 50;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px;
-            background: var(--page);
-        }
-
-        .auth-card {
-            width: min(100%, 380px);
-            border: 1px solid var(--line-soft);
-            border-radius: 8px;
-            background: var(--surface);
-            box-shadow: var(--shadow);
-            padding: 24px;
-        }
-
-        .auth-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 8px;
-            background: #000000;
-            color: #ffffff;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .auth-error {
-            min-height: 20px;
-            color: var(--danger);
-            font-size: 13px;
-            font-weight: 600;
+            padding: calc(28px + var(--safe-top)) 23px calc(28px + var(--safe-bottom));
+            background:
+                radial-gradient(640px 420px at 50% -160px, rgba(74, 79, 94, 0.24), transparent 68%),
+                #000000;
+            overflow: hidden;
         }
 
         .auth-screen[hidden] {
             display: none;
         }
 
+        .dot-wave {
+            position: absolute;
+            left: 50%;
+            width: min(780px, 154vw);
+            height: 360px;
+            transform-origin: 50% 100%;
+            pointer-events: none;
+            opacity: 0.94;
+            transform: translateX(-50%) perspective(560px) rotateX(54deg);
+            filter: drop-shadow(0 -12px 26px rgba(155, 170, 200, 0.14));
+            color: rgba(255, 255, 255, 0.86);
+            mask-image:
+                linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%),
+                radial-gradient(84% 82% at 50% 31%, #000 0 39%, rgba(0, 0, 0, 0.9) 58%, transparent 84%);
+            mask-composite: intersect;
+            -webkit-mask-image:
+                linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%),
+                radial-gradient(84% 82% at 50% 31%, #000 0 39%, rgba(0, 0, 0, 0.9) 58%, transparent 84%);
+            -webkit-mask-composite: source-in;
+        }
+
+        .dot-wave-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .auth-dot-wave {
+            bottom: -14px;
+            z-index: 0;
+        }
+
+        .app-dot-wave {
+            position: fixed;
+            bottom: 52px;
+            z-index: 0;
+            opacity: 0.62;
+        }
+
+        .auth-screen::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 92px;
+            width: min(100%, 430px);
+            height: 150px;
+            border-radius: 100% 100% 0 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+            filter: blur(0.2px);
+            opacity: 0.38;
+            transform: translateX(-50%);
+        }
+
+        .auth-form {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: min(100%, 316px);
+            padding-top: 18px;
+        }
+
+        .auth-title {
+            margin: 18px 0 47px;
+            font-size: 44px;
+            line-height: 1;
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        .auth-heading {
+            margin: 0 0 11px;
+            font-size: 21px;
+            line-height: 1.2;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .auth-copy {
+            margin: 0 0 33px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.45;
+            text-align: center;
+        }
+
+        .password-field {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-field input,
+        .form-input {
+            width: 100%;
+            min-height: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: var(--radius-control);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+                var(--field);
+            color: #ffffff;
+            padding: 0 42px 0 15px;
+            font-size: 13px;
+            line-height: 1.2;
+            outline: none;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            transition: border-color 160ms ease, background 160ms ease;
+        }
+
+        .password-field input::placeholder,
+        .form-input::placeholder {
+            color: #686c74;
+        }
+
+        .password-field input:focus,
+        .form-input:focus {
+            border-color: rgba(255, 255, 255, 0.32);
+            background-color: rgba(28, 30, 34, 0.9);
+        }
+
+        .password-field input:focus-visible,
+        .form-input:focus-visible {
+            outline: none;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            display: inline-grid;
+            place-items: center;
+            width: 28px;
+            height: 28px;
+            color: #989ba1;
+            background: transparent;
+            transform: translateY(-50%);
+        }
+
+        .auth-error {
+            width: 100%;
+            min-height: 21px;
+            margin: 8px 0 0;
+            color: #f87171;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .primary-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            min-height: 51px;
+            border-radius: 9px;
+            background: linear-gradient(180deg, #ffffff 0%, #f1f2f4 100%);
+            color: #08090b;
+            font-size: 15px;
+            font-weight: 800;
+            box-shadow: 0 18px 42px rgba(255, 255, 255, 0.10), inset 0 1px 0 #ffffff;
+            transition: transform 150ms ease, filter 150ms ease;
+        }
+
+        .primary-button:active {
+            transform: scale(0.985);
+            filter: brightness(0.94);
+        }
+
+        .auth-submit {
+            margin-top: 21px;
+        }
+
         .app-header {
             position: sticky;
             top: 0;
             z-index: 10;
-            background: rgba(246, 247, 251, 0.88);
-            border-bottom: 1px solid rgba(223, 228, 234, 0.8);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-        }
-
-        .brand-mark {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            background: var(--accent);
-            color: #ffffff;
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            width: min(100%, 430px);
+            margin: 0 auto;
+            padding: calc(19px + var(--safe-top)) 20px 17px;
+            background: rgba(0, 0, 0, 0.78);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
         }
 
-        .summary-panel {
-            border-radius: 8px;
-            background: #111827;
+        .brand-name {
             color: #ffffff;
-            box-shadow: var(--shadow);
-            overflow: hidden;
+            font-size: 22px;
+            line-height: 1;
+            font-weight: 800;
         }
 
-        .summary-meta {
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
+        .icon-button {
+            display: inline-grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            color: #ffffff;
+            background: transparent;
         }
 
-        .subscription-row {
+        .app-main {
             position: relative;
-            display: grid;
-            grid-template-columns: 44px minmax(0, 1fr) auto;
-            gap: 12px;
-            align-items: center;
-            min-height: 76px;
-            padding: 14px;
-            border: 1px solid var(--line-soft);
-            border-radius: 8px;
-            background: var(--surface);
-            box-shadow: 0 10px 30px rgba(17, 24, 39, 0.05);
-            transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+            z-index: 2;
+            padding: 0 20px;
         }
 
-        @media (hover: hover) {
-            .subscription-row:hover {
-                border-color: #cfd6df;
-                box-shadow: 0 14px 34px rgba(17, 24, 39, 0.08);
-                transform: translateY(-1px);
-            }
+        .glass-panel {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background:
+                radial-gradient(120px 92px at 100% 18%, rgba(255, 255, 255, 0.09), transparent 68%),
+                linear-gradient(135deg, rgba(31, 34, 40, 0.92), rgba(13, 14, 16, 0.94) 56%, rgba(7, 8, 9, 0.98));
+            box-shadow: var(--shadow-panel);
+        }
+
+        .summary-card {
+            min-height: 104px;
+            border-radius: var(--radius-panel);
+            padding: 19px 68px 16px 19px;
+        }
+
+        .panel-label {
+            margin: 0;
+            color: #ffffff;
+            font-size: 11px;
+            line-height: 1.25;
+            font-weight: 700;
+        }
+
+        .amount {
+            margin: 8px 0 0;
+            color: #ffffff;
+            font-size: 24px;
+            line-height: 1;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        .panel-note {
+            margin: 12px 0 0;
+            color: #b2b4b9;
+            font-size: 12px;
+            line-height: 1.25;
+            font-weight: 500;
+        }
+
+        .wallet-orb {
+            position: absolute;
+            right: 14px;
+            top: 25px;
+            display: grid;
+            place-items: center;
+            width: 54px;
+            height: 54px;
+            border-radius: 18px;
+            background:
+                radial-gradient(circle at 45% 20%, rgba(255, 255, 255, 0.20), transparent 38%),
+                linear-gradient(145deg, rgba(44, 47, 53, 0.98), rgba(14, 15, 17, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            box-shadow:
+                0 18px 34px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        .wallet-orb::before {
+            content: "";
+            position: absolute;
+            inset: -12px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.08);
+            filter: blur(14px);
+            z-index: -1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .stat-card {
+            min-height: 91px;
+            border-radius: 10px;
+            padding: 17px 14px 13px;
+        }
+
+        .stat-card .amount {
+            margin-top: 10px;
+            font-size: 22px;
+        }
+
+        .stat-card .panel-note {
+            margin-top: 9px;
+        }
+
+        .list-heading {
+            margin: 16px 0 10px;
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        .subs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .subscription-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            min-height: 61px;
+            padding: 8px 10px 8px 11px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.008)),
+                rgba(15, 16, 19, 0.48);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+            color: #ffffff;
+            transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+        }
+
+        .subscription-card:active {
+            transform: scale(0.99);
+            border-color: rgba(255, 255, 255, 0.22);
+            background-color: rgba(22, 24, 28, 0.62);
+        }
+
+        .subscription-main {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            gap: 12px;
         }
 
         .service-icon {
-            width: 44px;
-            height: 44px;
+            display: inline-grid;
+            place-items: center;
+            flex: 0 0 auto;
+            width: 35px;
+            height: 35px;
             border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(17, 24, 39, 0.08);
-            background: var(--surface-soft);
+            color: #ffffff;
+            font-size: 24px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 10px 20px rgba(0, 0, 0, 0.28);
+            overflow: hidden;
         }
 
-        .delete-button {
-            width: 38px;
-            height: 38px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--danger);
-            background: #fff1f2;
-            border: 1px solid #ffe4e6;
-            transition: transform 160ms ease, background 160ms ease;
+        .service-icon--brand {
+            font-size: 0;
         }
 
-        .delete-button:active {
-            transform: scale(0.96);
-            background: #ffe4e6;
+        .service-logo {
+            display: block;
+            width: var(--service-logo-size, 23px);
+            height: var(--service-logo-size, 23px);
+            background: currentColor;
+            -webkit-mask: var(--service-logo) center / contain no-repeat;
+            mask: var(--service-logo) center / contain no-repeat;
         }
 
-        .subscription-actions {
+        .service-letter {
+            color: inherit;
+            font-size: 23px;
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .subscription-copy {
+            min-width: 0;
+        }
+
+        .service-name {
+            margin: 0;
+            color: #ffffff;
+            font-size: 13px;
+            line-height: 1.2;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .service-price {
+            margin: 4px 0 0;
+            color: #c2c4ca;
+            font-size: 12px;
+            line-height: 1.2;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .subscription-date {
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 6px;
+            min-width: 104px;
+            color: #b2b4b9;
+            font-size: 9px;
+            line-height: 1.2;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            display: none;
+            min-height: 294px;
+            margin-top: 22px;
+            padding: 42px 26px 34px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .empty-state.is-visible {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-box {
+            width: 154px;
+            height: 118px;
+            margin: -6px auto 19px;
+            object-fit: cover;
+            object-position: 50% 46%;
+            display: block;
+            opacity: 0.86;
+            filter: drop-shadow(0 22px 26px rgba(0, 0, 0, 0.34));
+            mix-blend-mode: screen;
+        }
+
+        .empty-title {
+            margin: 0;
+            color: #ffffff;
+            font-size: 17px;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        .empty-copy {
+            margin: 14px 0 0;
+            color: #b4b6bc;
+            font-size: 13px;
+            line-height: 1.6;
+            font-weight: 500;
         }
 
         .action-bar {
@@ -237,337 +651,313 @@
             right: 0;
             bottom: 0;
             z-index: 20;
-            padding: 14px 16px calc(14px + var(--safe-area-bottom));
-            background: linear-gradient(to top, rgba(246, 247, 251, 0.98) 70%, rgba(246, 247, 251, 0));
-        }
-
-        .primary-button {
-            height: 54px;
-            border-radius: 8px;
-            background: var(--accent);
-            color: #ffffff;
-            display: inline-flex;
-            align-items: center;
+            display: flex;
             justify-content: center;
-            gap: 8px;
-            font-size: 15px;
-            font-weight: 700;
-            box-shadow: 0 14px 36px rgba(17, 24, 39, 0.20);
-            transition: transform 160ms ease, background 160ms ease;
+            padding: 18px 20px calc(17px + var(--safe-bottom));
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0), #000000 24%, #000000 100%);
         }
 
-        .primary-button:active {
-            transform: scale(0.98);
-            background: #000000;
+        .action-bar .primary-button {
+            width: min(100%, 390px);
         }
 
-        .modal-overlay {
+        #modalBackdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: block;
+            background: rgba(0, 0, 0, 0.64);
             opacity: 0;
-            transition: opacity 220ms ease;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            pointer-events: none;
+            transition: opacity 260ms ease;
         }
 
-        .modal-overlay.active {
+        #modalBackdrop.active {
             opacity: 1;
+            pointer-events: auto;
         }
 
-        .modal-content {
-            opacity: 0;
-            transform: translateY(18px);
-            transition: opacity 260ms ease, transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+        #modalBackdrop[hidden] {
+            display: none;
         }
 
-        .modal-content.active {
-            opacity: 1;
+        #addModal {
+            position: fixed;
+            inset-inline: 0;
+            bottom: 0;
+            z-index: 40;
+            display: flex;
+            justify-content: center;
+            padding: 0 11px;
+            pointer-events: none;
+        }
+
+        #addModal[hidden] {
+            display: none;
+        }
+
+        .modal-sheet {
+            position: relative;
+            width: min(100%, 390px);
+            padding: 27px 16px calc(48px + var(--safe-bottom));
+            border: 1px solid rgba(255, 255, 255, 0.17);
+            border-bottom: 0;
+            border-radius: 28px 28px 0 0;
+            background:
+                radial-gradient(260px 150px at 50% 0%, rgba(255, 255, 255, 0.08), transparent 66%),
+                linear-gradient(180deg, rgba(32, 34, 38, 0.96), rgba(24, 26, 29, 0.98));
+            box-shadow: 0 -18px 54px rgba(0, 0, 0, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+            pointer-events: auto;
+            transform: translateY(104%);
+            transition: transform 330ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #addModal.active .modal-sheet {
             transform: translateY(0);
         }
 
-        .modal-card {
-            max-height: 88dvh;
+        .modal-sheet::before {
+            content: "";
+            position: absolute;
+            top: 9px;
+            left: 50%;
+            width: 39px;
+            height: 4px;
+            border-radius: 99px;
+            background: rgba(255, 255, 255, 0.22);
+            transform: translateX(-50%);
         }
 
-        .modal-body {
-            max-height: calc(88dvh - 76px);
-            overflow-y: auto;
-        }
-
-        .field-label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--muted);
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .app-input {
-            width: 100%;
-            max-width: 100%;
-            min-width: 0;
-            min-height: 48px;
-            box-sizing: border-box;
-            border-radius: 8px;
-            border: 1px solid var(--line);
-            background: #ffffff;
-            color: var(--ink);
-            padding: 12px 14px;
-            font-size: 15px;
-            transition: border-color 160ms ease, box-shadow 160ms ease;
-        }
-
-        .app-input::placeholder {
-            color: var(--subtle);
-        }
-
-        .app-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.08);
-            outline: none;
-        }
-
-        input[type="date"].app-input {
-            display: block;
-            -webkit-appearance: none;
-            appearance: none;
-            text-align: left;
+        .modal-title {
+            margin: 0 0 18px;
+            color: #ffffff;
+            font-size: 16px;
+            line-height: 1.2;
+            font-weight: 800;
+            text-align: center;
         }
 
         .form-grid {
             display: grid;
-            min-width: 0;
-            gap: 16px;
+            gap: 10px;
         }
 
-        @media (min-width: 480px) {
-            .form-grid.two-col {
-                grid-template-columns: minmax(0, 1fr) 140px;
+        .form-row {
+            display: grid;
+            grid-template-columns: 82px minmax(0, 1fr);
+            align-items: center;
+            gap: 11px;
+            min-height: 50px;
+        }
+
+        .form-row label {
+            color: #ffffff;
+            font-size: 12px;
+            line-height: 1.35;
+            font-weight: 700;
+        }
+
+        .field-note {
+            display: block;
+            margin-top: 1px;
+            color: #b5b7bd;
+            font-size: 9px;
+            font-weight: 600;
+        }
+
+        .form-input {
+            min-height: 41px;
+            padding: 0 13px;
+            color-scheme: dark;
+        }
+
+        select.form-input {
+            appearance: none;
+            background-image:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23f7f7f8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat, no-repeat;
+            background-position: 0 0, right 12px center;
+            background-size: auto, 16px;
+            padding-right: 38px;
+        }
+
+        input[type="date"].form-input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.9;
+        }
+
+        .modal-submit {
+            margin-top: 18px;
+        }
+
+        @media (max-width: 360px) {
+            .auth-form {
+                width: 100%;
             }
-        }
 
-        @media (min-width: 640px) {
+            .auth-title {
+                font-size: 40px;
+                margin-bottom: 38px;
+            }
+
+            .app-header,
+            .app-main,
             .action-bar {
-                padding-inline: 24px;
-            }
-        }
-
-        @media (max-width: 380px) {
-            .subscription-row {
-                grid-template-columns: 40px minmax(0, 1fr);
-                gap: 10px;
+                padding-left: 14px;
+                padding-right: 14px;
             }
 
-            .subscription-actions {
-                grid-column: 2;
-                justify-content: space-between;
-                margin-top: -4px;
+            .subscription-date {
+                min-width: 88px;
+                font-size: 8.5px;
             }
 
-            .subscription-price {
-                text-align: left;
-            }
-        }
-
-        @media (max-width: 430px) {
-            .modal-card {
-                max-height: 94dvh;
-            }
-
-            .modal-body {
-                max-height: calc(94dvh - 68px);
-                padding: 16px 20px 18px;
-            }
-
-            .field-label {
-                margin-bottom: 6px;
-                font-size: 12px;
-            }
-
-            .app-input {
-                min-height: 44px;
-                padding: 10px 13px;
-            }
-
-            .form-grid {
-                gap: 12px;
-            }
-
-            .primary-button {
-                height: 52px;
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.001ms !important;
-                animation-iteration-count: 1 !important;
-                scroll-behavior: auto !important;
-                transition-duration: 0.001ms !important;
+            .form-row {
+                grid-template-columns: 76px minmax(0, 1fr);
+                gap: 9px;
             }
         }
     </style>
 </head>
-<body class="auth-locked selection:bg-slate-900 selection:text-white">
-    <section id="authScreen" class="auth-screen" aria-labelledby="authTitle">
-        <form id="authForm" class="auth-card" autocomplete="off">
-            <div class="auth-icon">
-                <i class="ph-fill ph-lock-key text-2xl"></i>
+<body class="auth-locked">
+    <section id="authScreen" class="auth-screen">
+        <div class="dot-wave auth-dot-wave" aria-hidden="true">
+            <canvas class="dot-wave-canvas" data-dot-wave="auth"></canvas>
+        </div>
+        <form id="authForm" class="auth-form" autocomplete="off">
+            <div class="logo-tile logo-tile--large" aria-hidden="true">
+                <img class="logo-image" src="assets/subs-logo.png" alt="">
             </div>
-            <h1 id="authTitle" class="mt-5 text-xl font-bold text-slate-950">Nhập mật khẩu</h1>
-            <p class="mt-2 text-sm leading-6 text-slate-500">Cần mật khẩu để sử dụng trình quản lý đăng ký.</p>
+            <h1 class="auth-title">Subs</h1>
 
-            <div class="mt-5">
-                <label class="field-label" for="appPassword">Mật khẩu</label>
-                <input id="appPassword" class="app-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" required>
+            <h2 class="auth-heading">Nhập mật khẩu</h2>
+            <p class="auth-copy">Vui lòng nhập mật khẩu để tiếp tục</p>
+
+            <div class="password-field">
+                <input id="appPassword" type="password" inputmode="numeric" maxlength="4" autocomplete="off" required placeholder="Mật khẩu">
+                <button type="button" id="togglePasswordBtn" class="password-toggle" aria-label="Hiện mật khẩu">
+                    <i class="ph ph-eye-slash" aria-hidden="true"></i>
+                </button>
             </div>
 
-            <p id="authError" class="auth-error mt-2" role="alert" aria-live="polite"></p>
+            <p id="authError" class="auth-error"></p>
 
-            <button class="primary-button mt-4 w-full" type="submit">
-                Mở ứng dụng
-            </button>
+            <button type="submit" class="primary-button auth-submit">Mở ứng dụng</button>
         </form>
     </section>
 
     <header class="app-header">
-        <div class="app-shell px-4 pt-4 pb-4 sm:px-6">
-            <div class="mb-4 flex items-center justify-between gap-4">
-                <div class="flex min-w-0 items-center gap-3">
-                    <div class="brand-mark">
-                        <i class="ph-fill ph-infinity text-xl"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <h1 class="truncate text-xl font-bold text-slate-950">Subs</h1>
-                        <p class="truncate text-sm font-medium text-slate-500">Quản lý chi phí định kỳ</p>
-                    </div>
-                </div>
-                <div class="hidden text-right sm:block">
-                    <p class="text-sm font-semibold text-slate-950" id="subsCountTop">0 dịch vụ</p>
-                    <p class="text-xs font-medium text-slate-500">đang theo dõi</p>
-                </div>
+        <div class="brand">
+            <div class="logo-tile logo-tile--small" aria-hidden="true">
+                <img class="logo-image" src="assets/subs-logo.png" alt="">
             </div>
-
-            <section class="summary-panel p-5" aria-label="Tổng chi phí hàng tháng">
-                <div class="flex items-start justify-between gap-4">
-                    <div class="min-w-0">
-                        <p class="text-sm font-medium text-white/60">Chi phí mỗi tháng</p>
-                        <div class="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                            <span class="text-4xl font-bold leading-none text-white sm:text-5xl" id="totalAmount">0</span>
-                            <span class="text-base font-semibold text-white/60">VND</span>
-                        </div>
-                    </div>
-                    <div class="rounded-lg border border-white/10 bg-white/10 p-3 text-white">
-                        <i class="ph ph-chart-line-up text-2xl"></i>
-                    </div>
-                </div>
-
-                <div class="summary-meta mt-5 grid grid-cols-2 gap-4 pt-4">
-                    <div>
-                        <p class="text-xs font-medium text-white/50">Đăng ký</p>
-                        <p class="mt-1 text-sm font-semibold text-white" id="subsCount">0 hoạt động</p>
-                    </div>
-                    <div>
-                        <p class="text-xs font-medium text-white/50">Chu kỳ năm</p>
-                        <p class="mt-1 text-sm font-semibold text-white" id="yearlyCount">0 dịch vụ</p>
-                    </div>
-                </div>
-            </section>
+            <span class="brand-name">Subs</span>
         </div>
+        <button class="icon-button" type="button" aria-label="Thông báo">
+            <i class="ph ph-bell" style="font-size: 23px;" aria-hidden="true"></i>
+        </button>
     </header>
 
-    <main class="app-shell px-4 pb-32 pt-4 sm:px-6">
-        <div class="mb-3 flex items-center justify-between">
-            <h2 class="text-base font-bold text-slate-950">Danh sách</h2>
-            <p class="text-sm font-medium text-slate-500" id="monthlyHint">0 VND/tháng</p>
+    <div class="dot-wave app-dot-wave" aria-hidden="true">
+        <canvas class="dot-wave-canvas" data-dot-wave="app"></canvas>
+    </div>
+
+    <main class="app-shell">
+        <img class="hero-box-bg" src="assets/empty-box-3d.png" alt="" aria-hidden="true">
+        <div class="app-main">
+            <section class="glass-panel summary-card" aria-label="Tổng chi phí">
+                <p class="panel-label">Chi phí mỗi tháng</p>
+                <h2 id="totalAmount" class="amount">0 đ</h2>
+                <p class="panel-note">Tổng chi tiêu hàng tháng</p>
+                <div class="wallet-orb" aria-hidden="true">
+                    <i class="ph ph-wallet" style="font-size: 30px;"></i>
+                </div>
+            </section>
+
+            <section class="stats-grid" aria-label="Thống kê đăng ký">
+                <article class="glass-panel stat-card">
+                    <p class="panel-label">Đăng ký</p>
+                    <p id="subsCount" class="amount">0</p>
+                    <p class="panel-note">Đang hoạt động</p>
+                </article>
+                <article class="glass-panel stat-card">
+                    <p class="panel-label">Chu kỳ năm</p>
+                    <p id="yearlyCount" class="amount">0</p>
+                    <p class="panel-note">Thanh toán hàng năm</p>
+                </article>
+            </section>
+
+            <h3 class="list-heading">Danh sách đăng ký</h3>
+
+            <section id="subsList" class="subs-list" aria-label="Danh sách đăng ký"></section>
+
+            <section id="emptyState" class="glass-panel empty-state" aria-live="polite">
+                <img class="empty-box" src="assets/empty-box-3d.png" alt="" aria-hidden="true">
+                <h3 class="empty-title">Chưa có đăng ký nào</h3>
+                <p class="empty-copy">Thêm đăng ký để bắt đầu<br>quản lý chi phí định kỳ của bạn.</p>
+            </section>
         </div>
-
-        <section class="flex flex-col gap-2.5" id="subsList" aria-live="polite">
-        </section>
-
-        <section id="emptyState" class="hidden rounded-lg border border-dashed border-slate-300 bg-white px-5 py-12 text-center shadow-sm" hidden>
-            <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
-                <i class="ph ph-receipt text-2xl"></i>
-            </div>
-            <h2 class="text-base font-bold text-slate-950">Chưa có đăng ký nào</h2>
-            <p class="mx-auto mt-2 max-w-[260px] text-sm leading-6 text-slate-500">Thêm dịch vụ đầu tiên để theo dõi chi phí lặp lại mỗi tháng.</p>
-        </section>
     </main>
 
     <div class="action-bar">
-        <div class="app-shell">
-            <button onclick="openModal()" class="primary-button w-full" type="button">
-                <i class="ph-bold ph-plus text-lg"></i>
-                Thêm đăng ký
-            </button>
-        </div>
+        <button onclick="openModal()" class="primary-button" type="button">
+            <i class="ph ph-plus" style="font-size: 23px;" aria-hidden="true"></i>
+            Thêm đăng ký
+        </button>
     </div>
 
-    <div id="modalBackdrop" class="modal-overlay fixed inset-0 z-30 hidden bg-slate-950/50 backdrop-blur-sm" onclick="closeModal()"></div>
+    <div id="modalBackdrop" hidden onclick="closeModal()"></div>
 
-    <div id="addModal" class="fixed inset-x-0 bottom-0 z-40 hidden flex-col justify-end px-3 sm:inset-0 sm:items-center sm:justify-center sm:p-6" style="padding-bottom: calc(0.75rem + var(--safe-area-bottom))">
-        <div class="modal-content modal-card w-full max-w-lg overflow-hidden rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:rounded-2xl">
-            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                <div>
-                    <h3 class="text-base font-bold text-slate-950">Thêm đăng ký</h3>
-                    <p class="mt-0.5 text-sm font-medium text-slate-500">Lưu chi phí định kỳ mới</p>
+    <div id="addModal" hidden aria-hidden="true">
+        <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <h3 id="modalTitle" class="modal-title">Thêm đăng ký</h3>
+
+            <form id="addForm" class="form-grid">
+                <div class="form-row">
+                    <label for="name">Tên dịch vụ</label>
+                    <input type="text" id="name" list="serviceSuggestions" required placeholder="Netflix, Shopee, Canva..." class="form-input">
+                    <datalist id="serviceSuggestions"></datalist>
                 </div>
-                <button onclick="closeModal()" class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors active:bg-slate-200" type="button" aria-label="Đóng">
-                    <i class="ph ph-x text-lg"></i>
-                </button>
-            </div>
 
-            <div class="modal-body px-5 py-5">
-                <form id="addForm" class="form-grid">
-                    <div>
-                        <label class="field-label" for="name">Tên dịch vụ</label>
-                        <input type="text" id="name" required placeholder="Netflix, Spotify..." class="app-input">
-                    </div>
+                <div class="form-row">
+                    <label for="price">Giá tiền (VND)</label>
+                    <input type="number" id="price" required placeholder="Nhập số tiền" inputmode="numeric" class="form-input">
+                </div>
 
-                    <div class="form-grid two-col">
-                        <div>
-                            <label class="field-label" for="price">Giá tiền (VND)</label>
-                            <input type="number" id="price" required placeholder="0" inputmode="numeric" class="app-input">
-                        </div>
-                        <div>
-                            <label class="field-label" for="cycle">Chu kỳ</label>
-                            <div class="relative">
-                                <select id="cycle" class="app-input appearance-none pr-10">
-                                    <option value="monthly">Hàng tháng</option>
-                                    <option value="yearly">Hàng năm</option>
-                                </select>
-                                <i class="ph ph-caret-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            </div>
-                        </div>
-                    </div>
+                <div class="form-row">
+                    <label for="cycle">Chu kỳ</label>
+                    <select id="cycle" class="form-input">
+                        <option value="monthly">Hàng tháng</option>
+                        <option value="yearly">Hàng năm</option>
+                    </select>
+                </div>
 
-                    <div>
-                        <label class="field-label" for="startDate">Ngày bắt đầu</label>
-                        <input type="date" id="startDate" required class="app-input">
-                    </div>
+                <div class="form-row">
+                    <label for="startDate">Ngày bắt đầu</label>
+                    <input type="date" id="startDate" required class="form-input">
+                </div>
 
-                    <div>
-                        <label class="field-label" for="cancelDate">Ngày hủy (không bắt buộc)</label>
-                        <input type="date" id="cancelDate" class="app-input">
-                    </div>
+                <div class="form-row">
+                    <label for="cancelDate">Ngày hủy <span class="field-note">(không bắt buộc)</span></label>
+                    <input type="date" id="cancelDate" class="form-input">
+                </div>
 
-                    <div>
-                        <label class="field-label" for="paymentMethod">Phương thức thanh toán</label>
-                        <div class="relative">
-                            <select id="paymentMethod" class="app-input appearance-none pr-10">
-                                <option value="Apple Pay">Apple Pay</option>
-                                <option value="MoMo">MoMo</option>
-                                <option value="Visa">Visa</option>
-                                <option value="Mastercard">Mastercard</option>
-                                <option value="Internet Banking">Internet Banking</option>
-                            </select>
-                            <i class="ph ph-caret-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        </div>
-                    </div>
+                <div class="form-row">
+                    <label for="paymentMethod">Phương thức thanh toán</label>
+                    <select id="paymentMethod" class="form-input">
+                        <option value="Apple Pay">Apple Pay</option>
+                        <option value="MoMo">MoMo</option>
+                        <option value="Visa">Visa</option>
+                        <option value="Mastercard">Mastercard</option>
+                        <option value="Internet Banking">Internet Banking</option>
+                    </select>
+                </div>
 
-                    <button type="button" onclick="saveSubscription()" class="primary-button mt-2 w-full">
-                        Lưu đăng ký
-                    </button>
-                </form>
-            </div>
+                <button type="button" onclick="saveSubscription()" class="primary-button modal-submit">Lưu đăng ký</button>
+            </form>
         </div>
     </div>
 
