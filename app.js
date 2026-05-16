@@ -56,6 +56,8 @@ const SERVICE_ICON_CONFIGS = [
 ];
 
 let subscriptions = readSubscriptions();
+let editingSubscriptionId = null;
+let pendingDeleteSubscriptionId = null;
 
 function initAuthGate() {
     const authScreen = document.getElementById('authScreen');
@@ -106,6 +108,11 @@ function initPasswordToggle() {
 function initModalKeyboard() {
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
+            if (isDeleteConfirmOpen()) {
+                closeDeleteConfirm();
+                return;
+            }
+
             closeModal();
         }
     });
@@ -293,6 +300,8 @@ function createSubscriptionCard(sub) {
     const serviceName = escapeHtml(sub.name || 'Dịch vụ');
     const rawServiceName = sub.name || 'dịch vụ này';
     const startDateStr = formatDate(sub.startDate);
+    const cancelDateStr = sub.cancelDate ? formatDate(sub.cancelDate) : '';
+    const paymentMethod = sub.paymentMethod || 'Chưa chọn';
     const monthlyEquivalent = sub.cycle === 'yearly'
         ? `${formatMoney(Math.round(price / 12))} đ/tháng`
         : `${formatMoney(price)} đ/tháng`;
@@ -301,7 +310,7 @@ function createSubscriptionCard(sub) {
     card.className = 'subscription-card';
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
-    card.setAttribute('aria-label', `Xóa đăng ký ${rawServiceName}`);
+    card.setAttribute('aria-label', `Chỉnh sửa đăng ký ${rawServiceName}`);
 
     const iconClass = iconConfig.logo ? 'service-icon service-icon--brand' : 'service-icon';
     const iconStyle = [
@@ -322,6 +331,10 @@ function createSubscriptionCard(sub) {
             <div class="subscription-copy">
                 <h3 class="service-name">${serviceName}</h3>
                 <p class="service-price">${monthlyEquivalent}</p>
+                <div class="subscription-details" aria-label="Thông tin thanh toán">
+                    <span><i class="ph ph-credit-card" aria-hidden="true"></i>${escapeHtml(paymentMethod)}</span>
+                    ${cancelDateStr ? `<span><i class="ph ph-calendar-x" aria-hidden="true"></i>Hủy: ${cancelDateStr}</span>` : ''}
+                </div>
             </div>
         </div>
         <div class="subscription-date">
@@ -330,17 +343,13 @@ function createSubscriptionCard(sub) {
         </div>
     `;
 
-    const requestDelete = () => {
-        if (confirm(`Bạn muốn xóa đăng ký ${rawServiceName}?`)) {
-            deleteSubscription(sub.id);
-        }
-    };
+    const openEditor = () => openEditModal(sub.id);
 
-    card.addEventListener('click', requestDelete);
+    card.addEventListener('click', openEditor);
     card.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            requestDelete();
+            openEditor();
         }
     });
 
@@ -396,16 +405,50 @@ function formatDate(dateString) {
 }
 
 function openModal() {
+    openSubscriptionModal();
+}
+
+function openEditModal(id) {
+    const sub = subscriptions.find((item) => item.id === id);
+    if (!sub) return;
+
+    openSubscriptionModal(sub);
+}
+
+function openSubscriptionModal(sub = null) {
     const modal = document.getElementById('addModal');
     const backdrop = document.getElementById('modalBackdrop');
     const form = document.getElementById('addForm');
+    const title = document.getElementById('modalTitle');
+    const saveButton = document.getElementById('saveSubscriptionButton');
+    const deleteButton = document.getElementById('deleteSubscriptionButton');
     const startDate = document.getElementById('startDate');
     const nameInput = document.getElementById('name');
 
     if (!modal || !backdrop || !form || !startDate) return;
 
+    editingSubscriptionId = sub?.id || null;
+    clearFormError();
     form.reset();
-    startDate.valueAsDate = new Date();
+    fillSubscriptionForm(sub);
+
+    if (!sub) {
+        startDate.valueAsDate = new Date();
+    }
+
+    if (title) {
+        title.textContent = sub ? 'Chỉnh sửa đăng ký' : 'Thêm đăng ký';
+    }
+
+    if (saveButton) {
+        saveButton.innerHTML = sub
+            ? '<i class="ph ph-check" aria-hidden="true"></i>Lưu thay đổi'
+            : '<i class="ph ph-check" aria-hidden="true"></i>Lưu đăng ký';
+    }
+
+    if (deleteButton) {
+        deleteButton.hidden = !sub;
+    }
 
     backdrop.hidden = false;
     modal.hidden = false;
@@ -423,6 +466,10 @@ function closeModal() {
     const backdrop = document.getElementById('modalBackdrop');
 
     if (!modal || !backdrop || !modal.classList.contains('active')) return;
+
+    closeDeleteConfirm();
+    editingSubscriptionId = null;
+    clearFormError();
 
     backdrop.classList.remove('active');
     modal.classList.remove('active');
@@ -443,12 +490,12 @@ function saveSubscription() {
     const paymentMethod = document.getElementById('paymentMethod').value;
 
     if (!name || !price || Number(price) <= 0 || !startDate) {
-        alert('Vui lòng nhập tên dịch vụ, giá tiền hợp lệ và ngày bắt đầu.');
+        showFormError('Vui lòng nhập tên dịch vụ, giá tiền hợp lệ và ngày bắt đầu.');
         return;
     }
 
-    const newSub = {
-        id: Date.now().toString(),
+    const subData = {
+        id: editingSubscriptionId || Date.now().toString(),
         name,
         price,
         cycle,
@@ -457,7 +504,14 @@ function saveSubscription() {
         paymentMethod
     };
 
-    subscriptions.unshift(newSub);
+    if (editingSubscriptionId) {
+        subscriptions = subscriptions.map((sub) => (
+            sub.id === editingSubscriptionId ? subData : sub
+        ));
+    } else {
+        subscriptions.unshift(subData);
+    }
+
     saveToLocalStorage();
     closeModal();
 }
@@ -465,6 +519,90 @@ function saveSubscription() {
 function deleteSubscription(id) {
     subscriptions = subscriptions.filter((sub) => sub.id !== id);
     saveToLocalStorage();
+}
+
+function fillSubscriptionForm(sub) {
+    const fields = {
+        name: document.getElementById('name'),
+        price: document.getElementById('price'),
+        cycle: document.getElementById('cycle'),
+        startDate: document.getElementById('startDate'),
+        cancelDate: document.getElementById('cancelDate'),
+        paymentMethod: document.getElementById('paymentMethod')
+    };
+
+    fields.name.value = sub?.name || '';
+    fields.price.value = sub?.price || '';
+    fields.cycle.value = sub?.cycle || 'monthly';
+    fields.startDate.value = sub?.startDate || '';
+    fields.cancelDate.value = sub?.cancelDate || '';
+    fields.paymentMethod.value = sub?.paymentMethod || 'Apple Pay';
+}
+
+function requestDeleteSubscription() {
+    if (!editingSubscriptionId) return;
+
+    const sub = subscriptions.find((item) => item.id === editingSubscriptionId);
+    if (!sub) return;
+
+    pendingDeleteSubscriptionId = editingSubscriptionId;
+
+    const message = document.getElementById('deleteConfirmMessage');
+    if (message) {
+        message.textContent = `Đăng ký ${sub.name || 'này'} sẽ bị xóa khỏi danh sách của bạn.`;
+    }
+
+    const dialog = document.getElementById('deleteConfirm');
+    if (!dialog) return;
+
+    dialog.hidden = false;
+    dialog.setAttribute('aria-hidden', 'false');
+
+    requestAnimationFrame(() => {
+        dialog.classList.add('active');
+        document.getElementById('cancelDeleteButton')?.focus();
+    });
+}
+
+function confirmDeleteSubscription() {
+    if (!pendingDeleteSubscriptionId) return;
+
+    const id = pendingDeleteSubscriptionId;
+    closeDeleteConfirm();
+    closeModal();
+    deleteSubscription(id);
+}
+
+function closeDeleteConfirm() {
+    const dialog = document.getElementById('deleteConfirm');
+    if (!dialog || !dialog.classList.contains('active')) return;
+
+    pendingDeleteSubscriptionId = null;
+    dialog.classList.remove('active');
+    dialog.setAttribute('aria-hidden', 'true');
+
+    setTimeout(() => {
+        dialog.hidden = true;
+    }, 180);
+}
+
+function isDeleteConfirmOpen() {
+    const dialog = document.getElementById('deleteConfirm');
+    return Boolean(dialog?.classList.contains('active'));
+}
+
+function showFormError(message) {
+    const error = document.getElementById('formError');
+    if (!error) return;
+
+    error.textContent = message;
+}
+
+function clearFormError() {
+    const error = document.getElementById('formError');
+    if (!error) return;
+
+    error.textContent = '';
 }
 
 function escapeHtml(value) {
