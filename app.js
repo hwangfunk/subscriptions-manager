@@ -71,7 +71,10 @@ function initAuthGate() {
     }
 
     document.body.classList.add('auth-locked');
-    passwordInput.focus();
+
+    if (shouldAutoFocusFormControl()) {
+        passwordInput.focus();
+    }
 
     authForm.addEventListener('submit', (event) => {
         event.preventDefault();
@@ -103,6 +106,11 @@ function initPasswordToggle() {
             ? '<i class="ph ph-eye" aria-hidden="true"></i>'
             : '<i class="ph ph-eye-slash" aria-hidden="true"></i>';
     });
+}
+
+function shouldAutoFocusFormControl() {
+    const desktopPointer = window.matchMedia?.('(hover: hover) and (pointer: fine)');
+    return Boolean(desktopPointer?.matches);
 }
 
 function initModalKeyboard() {
