@@ -507,8 +507,9 @@
 
         .subscription-card {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-columns: minmax(0, 1fr) minmax(88px, 34%);
             align-items: center;
+            column-gap: 8px;
             min-height: 72px;
             padding: 8px 10px 8px 11px;
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -632,12 +633,25 @@
             align-items: center;
             justify-content: flex-end;
             gap: 6px;
-            min-width: 104px;
+            min-width: 0;
+            max-width: 100%;
             color: #b2b4b9;
             font-size: 9px;
             line-height: 1.2;
             font-weight: 700;
-            white-space: nowrap;
+            white-space: normal;
+            text-align: right;
+        }
+
+        .subscription-date span {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            overflow-wrap: anywhere;
+        }
+
+        .subscription-date i {
+            flex: 0 0 auto;
         }
 
         .empty-state {
@@ -1016,8 +1030,12 @@
                 padding-right: 14px;
             }
 
+            .subscription-card {
+                grid-template-columns: minmax(0, 1fr) minmax(78px, 32%);
+                column-gap: 6px;
+            }
+
             .subscription-date {
-                min-width: 88px;
                 font-size: 8.5px;
             }
 
