@@ -793,6 +793,11 @@
             min-height: 50px;
         }
 
+        .form-row > .form-input {
+            min-width: 0;
+            max-width: 100%;
+        }
+
         .form-row label {
             color: #ffffff;
             font-size: 12px;
@@ -828,6 +833,21 @@
         input[type="date"].form-input::-webkit-calendar-picker-indicator {
             filter: invert(1);
             opacity: 0.9;
+        }
+
+        input[type="date"].form-input {
+            display: block;
+            width: 100%;
+            appearance: none;
+            -webkit-appearance: none;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        input[type="date"].form-input::-webkit-date-and-time-value,
+        input[type="date"].form-input::-webkit-datetime-edit {
+            min-width: 0;
+            text-align: center;
         }
 
         .form-error {
